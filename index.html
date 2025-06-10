@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Communication Skills Improvement</title>
+  <script src="https://kit.fontawesome.com/9300e057c1.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: #fff;
+    }
+
+    .header {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .backvideo {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #container {
+      padding: 30px;
+      text-align: center;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 250px;
+      font-size: 16px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      background: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    #transcript {
+      margin-top: 20px;
+      font-size: 18px;
+      background: #222;
+      padding: 15px;
+      border-radius: 10px;
+      min-height: 80px;
+    }
+
+    #score {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      background: #333;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #555;
+    }
+
+    #performanceChart {
+      margin: 20px auto;
+      max-width: 400px;
+    }
+
+    #micAnimation {
+      margin: auto;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <video autoplay loop muted playsinline class="backvideo">
+      <source src="Space.mp4" type="video/mp4">
+    </video>
+
+    <div id="container">
+      <h1>Improve Your Communication Skills</h1>
+
+      <input type="text" id="nameInput" placeholder="Enter your name" autocomplete="off" />
+      <br>
+      <button id="startStopBtn">Start Recording</button>
+
+      <div id="transcript" aria-live="polite" aria-atomic="true">
+        Your transcript will appear here...
+      </div>
+
+      <div id="score" style="display:none;">
+        <div>Grammar Score: <span id="grammarScore"></span>/100</div>
+        <div>Depth Score: <span id="depthScore"></span>/100</div>
+        <div>Relevance Score: <span id="relevanceScore"></span>/100</div>
+        <div style="font-weight:bold; margin-top:8px;">Total Score: <span id="totalScore"></span>/100</div>
+      </div>
+
+      <canvas id="performanceChart" width="300" height="200"></canvas>
+
+      <div id="leaderboard">
+        <h2>Leaderboard (Top 10)</h2>
+        <table>
+          <thead><tr><th>Name</th><th>Score/100</th></tr></thead>
+          <tbody id="leaderboardBody">
+            <tr><td colspan="2">No scores yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <audio id="applauseSound" src="https://www.soundjay.com/human/applause-01.mp3" preload="auto"></audio>
+
+<script>
+const startStopBtn = document.getElementById("startStopBtn");
+const transcriptDiv = document.getElementById("transcript");
+const grammarScoreSpan = document.getElementById("grammarScore");
+const depthScoreSpan = document.getElementById("depthScore");
+const relevanceScoreSpan = document.getElementById("relevanceScore");
+const totalScoreSpan = document.getElementById("totalScore");
+const scoreDiv = document.getElementById("score");
+const leaderboardBody = document.getElementById("leaderboardBody");
+const nameInput = document.getElementById("nameInput");
+const micAnimation = document.getElementById("micAnimation");
+
+let recognition;
+let isRecording = false;
+let finalTranscript = "";
+
+if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+
+  recognition.onresult = (event) => {
+    let interimTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      const transcriptPart = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += transcriptPart + " ";
+      } else {
+        interimTranscript += transcriptPart;
+      }
+    }
+    transcriptDiv.textContent = finalTranscript + interimTranscript;
+  };
+
+  recognition.onerror = (event) => {
+    console.error("Speech recognition error:", event.error);
+  };
+
+  recognition.onend = () => {
+    if (isRecording) {
+      startStopBtn.textContent = "Start Recording";
+      micAnimation.style.display = "none";
+      isRecording = false;
+      evaluateTranscript(finalTranscript);
+    }
+  };
+
+  startStopBtn.addEventListener("click", () => {
+    if (!isRecording) {
+      finalTranscript = "";
+      transcriptDiv.textContent = "Listening...";
+      recognition.start();
+      micAnimation.style.display = "block";
+      startStopBtn.textContent = "Stop Recording";
+      isRecording = true;
+    } else {
+      recognition.stop();
+    }
+  });
+
+} else {
+  transcriptDiv.textContent = "Speech Recognition is not supported in your browser.";
+  startStopBtn.disabled = true;
+}
+
+function evaluateTranscript(text) {
+  let grammarMistakes = (text.match(/\b(is|are|was|were|the|a|an)\b/g) || []).length;
+  let grammarScore = Math.max(100 - grammarMistakes * 2, 0);
+
+  const words = text.toLowerCase().split(/\s+/);
+  const uniqueLongWords = new Set(words.filter(w => w.length > 4));
+  let depthScore = Math.min(uniqueLongWords.size * 2, 100);
+
+  let relevanceScore = Math.min(text.split('.').length * 10, 100);
+  let totalScore = Math.round((grammarScore + depthScore + relevanceScore) / 3);
+
+  grammarScoreSpan.textContent = grammarScore;
+  depthScoreSpan.textContent = depthScore;
+  relevanceScoreSpan.textContent = relevanceScore;
+  totalScoreSpan.textContent = totalScore;
+  scoreDiv.style.display = "block";
+
+  updateLeaderboard(nameInput.value, totalScore);
+  updateAnimation(totalScore);
+  speakFeedback(nameInput.value, grammarScore, depthScore, relevanceScore);
+  showPerformanceChart(grammarScore, depthScore, relevanceScore);
+}
+
+function updateLeaderboard(name, score) {
+  let scores = JSON.parse(localStorage.getItem("scores") || "[]");
+  scores.push({ name, score });
+  scores.sort((a, b) => b.score - a.score);
+  scores = scores.slice(0, 10);
+  localStorage.setItem("scores", JSON.stringify(scores));
+
+  leaderboardBody.innerHTML = "";
+  scores.forEach(entry => {
+    let row = document.createElement("tr");
+    row.innerHTML = `<td>${entry.name}</td><td>${entry.score}</td>`;
+    leaderboardBody.appendChild(row);
+  });
+}
+
+function updateAnimation(score) {
+  const container = document.getElementById("animatedBoy").parentNode;
+  container.innerHTML = "";
+
+  let animSrc;
+  if (score >= 70) {
+    animSrc = "https://assets1.lottiefiles.com/packages/lf20_w51pcehl.json";
+  } else if (score >= 40) {
+    animSrc = "https://assets1.lottiefiles.com/private_files/lf30_t8pgj7vz.json";
+  } else {
+    animSrc = "https://assets1.lottiefiles.com/packages/lf20_x1gjdldd.json";
+  }
+
+  const newPlayer = document.createElement("lottie-player");
+  newPlayer.src = animSrc;
+  newPlayer.background = "transparent";
+  newPlayer.speed = "1";
+  newPlayer.style.width = "250px";
+  newPlayer.style.height = "250px";
+  newPlayer.setAttribute("loop", "");
+  newPlayer.setAttribute("autoplay", "");
+  newPlayer.id = "animatedBoy";
+
+  container.appendChild(newPlayer);
+}
+
+function speakFeedback(name, grammar, depth, relevance) {
+  const message = `Hi ${name}, your grammar score is ${grammar}, depth score is ${depth}, and relevance score is ${relevance}. Great job!`;
+
+  if ((grammar + depth + relevance) / 3 >= 70) {
+    document.getElementById("applauseSound").play();
+  }
+
+  const utterance = new SpeechSynthesisUtterance(message);
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  utterance.lang = "en-US";
+  speechSynthesis.speak(utterance);
+}
+
+function showPerformanceChart(grammar, depth, relevance) {
+  const ctx = document.getElementById('performanceChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Grammar', 'Depth', 'Relevance'],
+      datasets: [{
+        label: 'Scores',
+        data: [grammar, depth, relevance],
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(255, 206, 86, 0.6)',
+          'rgba(153, 102, 255, 0.6)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100
+        }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
