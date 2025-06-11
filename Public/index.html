@@ -1,310 +1,293 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Communication Skills Improvement</title>
-  <script src="https://kit.fontawesome.com/9300e057c1.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+  <title>Communication Evaluator</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <style>
+    :root {
+      --bg-dark: #000000;
+      --bg-light: #ffffff;
+      --text-dark: #f1f1f1;
+      --text-light: #1e1e2f;
+      --primary: #4f46e5;
+      --secondary: #10b981;
+      --border-radius: 12px;
+    }
+
+    html[data-theme="dark"] {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    html[data-theme="light"] {
+      background-color: var(--bg-light);
+      color: var(--text-light);
+    }
+
     body {
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #000;
-      color: #fff;
-    }
-
-    .header {
-      position: relative;
-      width: 100%;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       min-height: 100vh;
-      overflow: hidden;
+      transition: background-color 0.3s, color 0.3s;
     }
 
-    .backvideo {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      z-index: -1;
+    .container {
+      max-width: 700px;
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    #container {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: var(--border-radius);
       padding: 30px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
       text-align: center;
     }
 
-    input[type="text"] {
-      padding: 10px;
-      width: 250px;
-      font-size: 16px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      border: none;
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
     }
 
-    button {
-      padding: 10px 20px;
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
       font-size: 16px;
-      border-radius: 10px;
-      background: #28a745;
+      border: 1px solid #ccc;
+      border-radius: var(--border-radius);
+      margin-bottom: 25px;
+    }
+
+    .record-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: var(--primary);
       color: white;
+      padding: 12px 24px;
+      border-radius: var(--border-radius);
       border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .record-btn:hover {
+      background-color: #3730a3;
+    }
+
+    .mic-icon {
+      font-size: 24px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #totalScoreBox {
+      margin-top: 25px;
+      font-size: 22px;
+      font-weight: bold;
+      text-align: center;
+      padding: 12px;
+      background-color: var(--secondary);
+      border-radius: var(--border-radius);
+      color: white;
+      display: none;
+    }
+
+    canvas {
+      margin-top: 30px;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.04);
+      border-radius: var(--border-radius);
+      display: none;
+    }
+
+    #themeToggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 20px;
+      background-color: var(--primary);
+      color: white;
+      font-weight: bold;
       cursor: pointer;
     }
 
-    #transcript {
-      margin-top: 20px;
-      font-size: 18px;
-      background: #222;
-      padding: 15px;
-      border-radius: 10px;
-      min-height: 80px;
-    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 22px;
+      }
 
-    #score {
-      margin-top: 20px;
-      font-size: 18px;
-    }
+      .record-btn {
+        flex-direction: column;
+        gap: 8px;
+        font-size: 16px;
+      }
 
-    table {
-      width: 100%;
-      margin-top: 20px;
-      border-collapse: collapse;
-      background: #333;
-    }
-
-    th, td {
-      padding: 10px;
-      border: 1px solid #555;
-    }
-
-    #performanceChart {
-      margin: 20px auto;
-      max-width: 400px;
-    }
-
-    #micAnimation {
-      margin: auto;
-      display: none;
+      .mic-icon {
+        font-size: 28px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <video autoplay loop muted playsinline class="backvideo">
-      <source src="Space.mp4" type="video/mp4">
-    </video>
-
-    <div id="container">
-      <h1>Improve Your Communication Skills</h1>
-
-      <input type="text" id="nameInput" placeholder="Enter your name" autocomplete="off" />
-      <br>
-      <button id="startStopBtn">Start Recording</button>
-
-      <div id="transcript" aria-live="polite" aria-atomic="true">
-        Your transcript will appear here...
-      </div>
-
-      <div id="score" style="display:none;">
-        <div>Grammar Score: <span id="grammarScore"></span>/100</div>
-        <div>Depth Score: <span id="depthScore"></span>/100</div>
-        <div>Relevance Score: <span id="relevanceScore"></span>/100</div>
-        <div style="font-weight:bold; margin-top:8px;">Total Score: <span id="totalScore"></span>/100</div>
-      </div>
-
-      <canvas id="performanceChart" width="300" height="200"></canvas>
-
-      <div id="leaderboard">
-        <h2>Leaderboard (Top 10)</h2>
-        <table>
-          <thead><tr><th>Name</th><th>Score/100</th></tr></thead>
-          <tbody id="leaderboardBody">
-            <tr><td colspan="2">No scores yet</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+  <button id="themeToggle">Switch Theme</button>
+  <div class="container">
+    <h1>Evaluate Your Communication Skill</h1>
+    <input type="text" id="nameInput" placeholder="Enter your name..." />
+    <button id="micButton" class="record-btn">
+      <i class="fas fa-microphone mic-icon" id="micIcon"></i>
+      <span id="recordLabel">Start Recording</span>
+    </button>
+    <div id="totalScoreBox">Total Score: <span id="totalScore">0</span>/100</div>
+    <canvas id="performanceChart" width="300" height="200"></canvas>
+    <audio id="applauseSound" src="https://www.soundjay.com/human/applause-01.mp3" preload="auto"></audio>
   </div>
 
-  <audio id="applauseSound" src="https://www.soundjay.com/human/applause-01.mp3" preload="auto"></audio>
+  <script>
+    const micButton = document.getElementById("micButton");
+    const micIcon = document.getElementById("micIcon");
+    const recordLabel = document.getElementById("recordLabel");
+    const totalScoreBox = document.getElementById("totalScoreBox");
+    const totalScoreSpan = document.getElementById("totalScore");
+    const nameInput = document.getElementById("nameInput");
+    const canvas = document.getElementById("performanceChart");
+    const themeToggle = document.getElementById("themeToggle");
 
-<script>
-const startStopBtn = document.getElementById("startStopBtn");
-const transcriptDiv = document.getElementById("transcript");
-const grammarScoreSpan = document.getElementById("grammarScore");
-const depthScoreSpan = document.getElementById("depthScore");
-const relevanceScoreSpan = document.getElementById("relevanceScore");
-const totalScoreSpan = document.getElementById("totalScore");
-const scoreDiv = document.getElementById("score");
-const leaderboardBody = document.getElementById("leaderboardBody");
-const nameInput = document.getElementById("nameInput");
-const micAnimation = document.getElementById("micAnimation");
+    let recognition;
+    let isRecording = false;
+    let finalTranscript = "";
 
-let recognition;
-let isRecording = false;
-let finalTranscript = "";
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
 
-if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SpeechRecognition();
-  recognition.continuous = true;
-  recognition.interimResults = true;
-  recognition.lang = 'en-US';
-
-  recognition.onresult = (event) => {
-    let interimTranscript = '';
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-      const transcriptPart = event.results[i][0].transcript;
-      if (event.results[i].isFinal) {
-        finalTranscript += transcriptPart + " ";
-      } else {
-        interimTranscript += transcriptPart;
-      }
-    }
-    transcriptDiv.textContent = finalTranscript + interimTranscript;
-  };
-
-  recognition.onerror = (event) => {
-    console.error("Speech recognition error:", event.error);
-  };
-
-  recognition.onend = () => {
-    if (isRecording) {
-      startStopBtn.textContent = "Start Recording";
-      micAnimation.style.display = "none";
-      isRecording = false;
-      evaluateTranscript(finalTranscript);
-    }
-  };
-
-  startStopBtn.addEventListener("click", () => {
-    if (!isRecording) {
-      finalTranscript = "";
-      transcriptDiv.textContent = "Listening...";
-      recognition.start();
-      micAnimation.style.display = "block";
-      startStopBtn.textContent = "Stop Recording";
-      isRecording = true;
-    } else {
-      recognition.stop();
-    }
-  });
-
-} else {
-  transcriptDiv.textContent = "Speech Recognition is not supported in your browser.";
-  startStopBtn.disabled = true;
-}
-
-function evaluateTranscript(text) {
-  let grammarMistakes = (text.match(/\b(is|are|was|were|the|a|an)\b/g) || []).length;
-  let grammarScore = Math.max(100 - grammarMistakes * 2, 0);
-
-  const words = text.toLowerCase().split(/\s+/);
-  const uniqueLongWords = new Set(words.filter(w => w.length > 4));
-  let depthScore = Math.min(uniqueLongWords.size * 2, 100);
-
-  let relevanceScore = Math.min(text.split('.').length * 10, 100);
-  let totalScore = Math.round((grammarScore + depthScore + relevanceScore) / 3);
-
-  grammarScoreSpan.textContent = grammarScore;
-  depthScoreSpan.textContent = depthScore;
-  relevanceScoreSpan.textContent = relevanceScore;
-  totalScoreSpan.textContent = totalScore;
-  scoreDiv.style.display = "block";
-
-  updateLeaderboard(nameInput.value, totalScore);
-  updateAnimation(totalScore);
-  speakFeedback(nameInput.value, grammarScore, depthScore, relevanceScore);
-  showPerformanceChart(grammarScore, depthScore, relevanceScore);
-}
-
-function updateLeaderboard(name, score) {
-  let scores = JSON.parse(localStorage.getItem("scores") || "[]");
-  scores.push({ name, score });
-  scores.sort((a, b) => b.score - a.score);
-  scores = scores.slice(0, 10);
-  localStorage.setItem("scores", JSON.stringify(scores));
-
-  leaderboardBody.innerHTML = "";
-  scores.forEach(entry => {
-    let row = document.createElement("tr");
-    row.innerHTML = `<td>${entry.name}</td><td>${entry.score}</td>`;
-    leaderboardBody.appendChild(row);
-  });
-}
-
-function updateAnimation(score) {
-  const container = document.getElementById("animatedBoy").parentNode;
-  container.innerHTML = "";
-
-  let animSrc;
-  if (score >= 70) {
-    animSrc = "https://assets1.lottiefiles.com/packages/lf20_w51pcehl.json";
-  } else if (score >= 40) {
-    animSrc = "https://assets1.lottiefiles.com/private_files/lf30_t8pgj7vz.json";
-  } else {
-    animSrc = "https://assets1.lottiefiles.com/packages/lf20_x1gjdldd.json";
-  }
-
-  const newPlayer = document.createElement("lottie-player");
-  newPlayer.src = animSrc;
-  newPlayer.background = "transparent";
-  newPlayer.speed = "1";
-  newPlayer.style.width = "250px";
-  newPlayer.style.height = "250px";
-  newPlayer.setAttribute("loop", "");
-  newPlayer.setAttribute("autoplay", "");
-  newPlayer.id = "animatedBoy";
-
-  container.appendChild(newPlayer);
-}
-
-function speakFeedback(name, grammar, depth, relevance) {
-  const message = `Hi ${name}, your grammar score is ${grammar}, depth score is ${depth}, and relevance score is ${relevance}. Great job!`;
-
-  if ((grammar + depth + relevance) / 3 >= 70) {
-    document.getElementById("applauseSound").play();
-  }
-
-  const utterance = new SpeechSynthesisUtterance(message);
-  utterance.rate = 1;
-  utterance.pitch = 1;
-  utterance.lang = "en-US";
-  speechSynthesis.speak(utterance);
-}
-
-function showPerformanceChart(grammar, depth, relevance) {
-  const ctx = document.getElementById('performanceChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Grammar', 'Depth', 'Relevance'],
-      datasets: [{
-        label: 'Scores',
-        data: [grammar, depth, relevance],
-        backgroundColor: [
-          'rgba(75, 192, 192, 0.6)',
-          'rgba(255, 206, 86, 0.6)',
-          'rgba(153, 102, 255, 0.6)'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100
+      recognition.onresult = (event) => {
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript + " ";
+          }
         }
+      };
+
+      recognition.onerror = (event) => {
+        alert("Speech recognition error: " + event.error);
+      };
+
+      recognition.onend = () => {
+        if (isRecording) {
+          stopRecordingUI();
+          evaluateTranscript(finalTranscript);
+        }
+      };
+
+      micButton.addEventListener("click", () => {
+        if (!isRecording) {
+          finalTranscript = "";
+          recognition.start();
+          startRecordingUI();
+        } else {
+          recognition.stop();
+        }
+      });
+    } else {
+      alert("Speech Recognition not supported in this browser.");
+      micButton.disabled = true;
+    }
+
+    function startRecordingUI() {
+      isRecording = true;
+      micIcon.classList.remove("fa-microphone");
+      micIcon.classList.add("fa-stop");
+      recordLabel.textContent = "Stop Recording";
+    }
+
+    function stopRecordingUI() {
+      isRecording = false;
+      micIcon.classList.remove("fa-stop");
+      micIcon.classList.add("fa-microphone");
+      recordLabel.textContent = "Start Recording";
+    }
+
+    function evaluateTranscript(text) {
+      let grammarMistakes = (text.match(/\b(is|are|was|were|the|a|an)\b/g) || []).length;
+      let grammarScore = Math.max(100 - grammarMistakes * 2, 0);
+
+      const words = text.toLowerCase().split(/\s+/);
+      const uniqueLongWords = new Set(words.filter(w => w.length > 4));
+      let depthScore = Math.min(uniqueLongWords.size * 2, 100);
+
+      let totalScore = Math.round((grammarScore + depthScore) / 2);
+      totalScoreSpan.textContent = totalScore;
+      totalScoreBox.style.display = "block";
+      canvas.style.display = "block";
+
+      speakFeedback(nameInput.value || "User", totalScore);
+      showPerformanceChart(grammarScore, depthScore);
+
+      if (totalScore >= 70) {
+        document.getElementById("applauseSound").play();
       }
     }
-  });
-}
-</script>
+
+    function speakFeedback(name, score) {
+      const message = `Hi ${name}, your total communication skill score is ${score}. Keep improving!`;
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.lang = "en-US";
+      speechSynthesis.speak(utterance);
+    }
+
+    function showPerformanceChart(grammar, depth) {
+      const ctx = document.getElementById('performanceChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Grammar', 'Depth'],
+          datasets: [{
+            label: 'Score',
+            data: [grammar, depth],
+            backgroundColor: ['#4bc0c0', '#facc15'],
+            borderColor: '#fff',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    themeToggle.addEventListener("click", () => {
+      const currentTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = currentTheme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      themeToggle.textContent = newTheme === "dark" ? "Switch Theme" : "Switch Theme";
+    });
+  </script>
 </body>
 </html>
