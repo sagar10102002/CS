@@ -187,6 +187,7 @@
 
       recognition.onerror = (event) => {
         alert("Speech recognition error: " + event.error);
+        stopRecordingUI();
       };
 
       recognition.onend = () => {
@@ -199,8 +200,14 @@
       micButton.addEventListener("click", () => {
         if (!isRecording) {
           finalTranscript = "";
-          recognition.start();
-          startRecordingUI();
+          navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(() => {
+              recognition.start();
+              startRecordingUI();
+            })
+            .catch(err => {
+              alert("Microphone access denied: " + err.message);
+            });
         } else {
           recognition.stop();
         }
